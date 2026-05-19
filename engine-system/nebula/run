@@ -1,0 +1,18 @@
+#!/bin/bash
+source ~/engine-system/config/settings.conf
+echo "[NEBULA] VISUAL ENGINE ONLINE"
+
+if [ "$nebula_mode" = "prism" ]; then
+  red=("▂" "▄" "█" "▄" "▂")
+  green=("░" "▒" "▓" "▒" "░")
+  blue=("▁" "▃" "▇" "▃" "▁")
+  for i in {0..4}; do
+    echo -ne "[NEBULA] PRISM R:${red[$i]} G:${green[$i]} B:${blue[$i]}\r"
+    sleep 0.07
+  done
+else
+  echo "[NEBULA] STANDARD MODE"
+fi
+
+echo
+echo "[NEBULA] COMPLETE"

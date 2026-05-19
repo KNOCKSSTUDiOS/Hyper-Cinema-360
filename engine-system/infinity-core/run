@@ -1,0 +1,8 @@
+#!/bin/bash
+echo "[INFINITY-CORE] ENGINE ONLINE"
+echo "[INFINITY-CORE] MICRO-TASK ENGINE ACTIVE"
+for t in {1..8}; do
+  echo "[INFINITY-CORE] MICRO-TASK $t ✓"
+  sleep 0.08
+done
+echo "[INFINITY-CORE] COMPLETE"

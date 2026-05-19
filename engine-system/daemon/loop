@@ -1,0 +1,16 @@
+#!/bin/bash
+source ~/engine-system/config/settings.conf
+
+if [ "$daemon_mode" = "infinite" ]; then
+  count=1
+  while true; do
+    echo "[DAEMON] INFINITE LOOP CYCLE $count"
+    count=$((count+1))
+    sleep 0.1
+  done
+else
+  for ((c=1; c<=daemon_cycles; c++)); do
+    echo "[DAEMON] LOOP CYCLE $c"
+    sleep 0.1
+  done
+fi

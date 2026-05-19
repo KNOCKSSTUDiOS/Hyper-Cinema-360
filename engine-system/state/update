@@ -1,0 +1,4 @@
+#!/bin/bash
+echo "[STATE] UPDATING SYSTEM STATE"
+echo "last_run: $(date)" > ~/engine-system/state/state.txt
+echo "[STATE] STATE UPDATED"

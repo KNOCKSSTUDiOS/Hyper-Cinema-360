@@ -1,0 +1,115 @@
+# paste the SHIELDCLI heredoc contents from the autorun script
+chmod +x ~/.local/bin/shield
+
+# Add to PATH if missing
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+
+shield#!/usr/bin/env bash
+# ─── SOUL ENGINE • SHIELD • CLI VERIFIER ────────────────────────
+# Usage:
+#   shield list
+#   shield verify <apk-or-keystore-path> [alias]
+#   shield fingerprint <keystore-path> <alias>
+# ────────────────────────────────────────────────────────────────
+set -uo pipefail
+
+REGISTRY="${SHIELD_REGISTRY:-$HOME/soul-engine/shield/registry/signing-identities.json}"
+
+R="\033[31m"; G="\033[32m"; Y="\033[33m"; C="\033[36m"; B="\033[1m"; N="\033[0m"
+
+die() { echo -e "${R}[shield] $*${N}" >&2; exit 1; }
+
+[[ -f "$REGISTRY" ]] || die "registry missing: $REGISTRY"
+
+CMD="${1:-}"
+case "$CMD" in
+    list)
+        echo -e "${B}SHIELD REGISTRY${N}  ($REGISTRY)"
+        if command -v node >/dev/null 2>&1; then
+            node -e "
+              const r=JSON.parse(require('fs').readFileSync('$REGISTRY'));
+              console.log('engine: '+r.engine+'  policy: '+r.shield_policy);
+              r.identities.forEach(i=>{
+                console.log('  ['+i.id+']  '+i.product+'/'+i.channel);
+                console.log('    sha256: '+i.sha256);
+                console.log('    purpose: '+i.purpose+'  rotatable: '+i.rotatable);
+              });"
+        else
+            cat "$REGISTRY"
+        fi
+        ;;
+
+    fingerprint)
+        KS="${2:-}"; AL="${3:-}"
+        [[ -f "$KS" && -n "$AL" ]] || die "usage: shield fingerprint <keystore> <alias>"
+        echo -n "keystore password: "; read -rs PW; echo
+        keytool -list -v -keystore "$KS" -alias "$AL" -storepass "$PW" 2>/dev/null \
+            | grep "SHA256:" | awk '{print $2}' | tr -d ':' | tr '[:upper:]' '[:lower:]'
+        unset PW
+        ;;
+
+    verify)
+        TARGET="${2:-}"
+        [[ -f "$TARGET" ]] || die "usage: shield verify <apk-or-keystore> [alias]"
+
+        FP=""
+        if [[ "$TARGET" == *.apk ]]; then
+            command -v apksigner >/dev/null || die "apksigner not in PATH"
+            FP=$(apksigner verify --print-certs "$TARGET" 2>/dev/null \
+                 | grep "SHA-256 digest:" | head -n1 | awk '{print $4}' \
+                 | tr -d ':' | tr '[:upper:]' '[:lower:]')
+        else
+            AL="${3:-nebula-release}"
+            echo -n "keystore password: "; read -rs PW; echo
+            FP=$(keytool -list -v -keystore "$TARGET" -alias "$AL" -storepass "$PW" 2>/dev/null \
+                 | grep "SHA256:" | awk '{print $2}' | tr -d ':' | tr '[:upper:]' '[:lower:]')
+            unset PW
+        fi
+
+        [[ -n "$FP" ]] || die "could not extract fingerprint"
+        echo -e "${C}target SHA-256: ${FP}${N}"
+
+        if command -v node >/dev/null 2>&1; then
+            MATCH=$(node -e "
+              const r=JSON.parse(require('fs').readFileSync('$REGISTRY'));
+              const m=r.identities.find(i=>i.sha256.toLowerCase()==='$FP');
+              if(m){console.log('MATCH '+m.id+' '+m.product+'/'+m.channel);}
+              else{console.log('NO_MATCH');}")
+            if [[ "$MATCH" == MATCH* ]]; then
+                echo -e "${G}[shield] ✅ $MATCH${N}"
+                exit 0
+            else
+                echo -e "${R}[shield] ❌ FINGERPRINT NOT IN REGISTRY${N}"
+                exit 2
+            fi
+        else
+            if grep -q "\"$FP\"" "$REGISTRY"; then
+                echo -e "${G}[shield] ✅ MATCH (grep fallback)${N}"
+                exit 0
+            else
+                echo -e "${R}[shield] ❌ NO MATCH${N}"
+                exit 2
+            fi
+        fi
+        ;;
+
+    *)
+        cat <<USAGE
+${B}SHIELD CLI${N}  •  SOUL ENGINE (QUANTUM 44)
+
+  shield list
+      Show all pinned signing identities
+
+  shield fingerprint <keystore> <alias>
+      Print SHA-256 of a keystore alias
+
+  shield verify <apk>
+      Verify APK signature against registry
+  shield verify <keystore> <alias>
+      Verify keystore alias against registry
+
+  registry: $REGISTRY
+USAGE
+        ;;
+esac

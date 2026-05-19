@@ -1,0 +1,4 @@
+#!/bin/bash
+echo "[MEMORY] ENGINE MEMORY ONLINE"
+echo "timestamp: $(date)" >> ~/engine-system/memory/log.txt
+echo "[MEMORY] LOG UPDATED"

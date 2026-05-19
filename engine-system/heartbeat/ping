@@ -1,0 +1,7 @@
+#!/bin/bash
+frames=("♥" "♡" "♥" "♡" "♥" "♡" "♥")
+for f in "${frames[@]}"; do
+  echo -ne "[HEARTBEAT] $f\r"
+  sleep 0.08
+done
+echo

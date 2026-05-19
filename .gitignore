@@ -1,0 +1,16 @@
+node_modules/
+.git/
+INFINITY-CORE-ENGINE/
+SOUL-Quantum-44-/
+all-projects/
+downloads/
+node_modules/
+.wrangler/
+dist/
+out/
+build/
+.env
+.env.local
+.nebula.env
+.DS_Store
+*.log

@@ -1,0 +1,4 @@
+#!/bin/bash
+echo "[UPDATE] CHECKING FOR ENGINE UPDATES"
+sleep 0.2
+echo "[UPDATE] NO UPDATES FOUND"

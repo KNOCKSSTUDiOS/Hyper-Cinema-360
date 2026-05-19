@@ -1,0 +1,8 @@
+[user]
+	name = Your Name
+	email = youremail@example.com
+[safe]
+	directory = /storage/emulated/0/KNOCKSSTUDiOS/HOLLYWOOD-IMAGING-STUDIO
+	directory = /storage/emulated/0/KNOCKSSTUDiOS/HOLLYWOOD-IMAGING-STUDIO
+	directory = /storage/emulated/0/KNOCKSSTUDiOS/HOLLYWOOD-IMAGING-STUDIO
+	directory = *

@@ -1,0 +1,28 @@
+# NEBULA-WEB :: KNOCKSSTUDiOS
+# Cloudflare Workers config — Static Assets + SPA fallback
+
+name = "nebula-web"
+main = "src/index.ts"
+compatibility_date = "2026-05-17"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+[[routes]]
+pattern = "hollywoodimaging.studio"
+custom_domain = true
+
+[[routes]]
+pattern = "*.hollywoodimaging.studio/*"
+zone_name = "hollywoodimaging.studio"
+
+[observability]
+enabled = true
+
+[vars]
+ENVIRONMENT = "production"
+BRAND = "KNOCKSSTUDiOS"
+APP = "NEBULA-WEB"

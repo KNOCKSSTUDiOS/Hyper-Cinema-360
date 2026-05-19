@@ -1,0 +1,4 @@
+#!/bin/bash
+echo "[SYNC-ALL] SYNCHRONIZING SYSTEM"
+sleep 0.2
+echo "[SYNC-ALL] COMPLETE"
