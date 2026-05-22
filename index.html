@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>KNOCKSSTUDiOS — 9DK 360 Hyper-Engine</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root { --cyan: #00f0ff; --blue: #0050ff; --dark: #000810; --panel: rgba(0,20,40,0.85); --glow: 0 0 20px #00f0ff88; }
+body { background: var(--dark); color: var(--cyan); font-family: 'Courier New', monospace; overflow: hidden; height: 100vh; width: 100vw; user-select: none; }
+#engineCanvas { position: fixed; inset: 0; z-index: 0; }
+#hud { position: fixed; top: 0; left: 0; right: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center; padding: 14px 24px; background: linear-gradient(180deg,rgba(0,8,16,0.95) 0%,transparent 100%); border-bottom: 1px solid #00f0ff22; }
+#logo { display: flex; flex-direction: column; line-height: 1; }
+.hi { font-size: 2.2rem; font-weight: 900; color: var(--cyan); letter-spacing: 4px; text-shadow: var(--glow); }
+.sub { font-size: 0.55rem; letter-spacing: 3px; color: #00f0ffaa; margin-top: 2px; }
+#engine-badge { text-align: right; }
+.badge-label { display: block; font-size: 0.5rem; letter-spacing: 3px; color: #00f0ff66; }
+.badge-name { display: block; font-size: 0.85rem; font-weight: 700; letter-spacing: 2px; color: var(--cyan); text-shadow: var(--glow); }
+.badge-nodes { display: block; font-size: 0.55rem; letter-spacing: 2px; color: #00f0ffaa; margin-top: 2px; }
+#nodeCount { color: #fff; font-weight: 700; }
+#center { position: fixed; inset: 0; z-index: 5; display: flex; align-items: center; justify-content: center; }
+#ring-wrap { position: relative; width: 320px; height: 320px; display: flex; align-items: center; justify-content: center; }
+.ring { position: absolute; border-radius: 50%; border: 2px solid var(--cyan); animation: spin linear infinite; }
+.r1 { width: 320px; height: 320px; opacity: 0.15; animation-duration: 20s; }
+.r2 { width: 240px; height: 240px; opacity: 0.25; animation-duration: 12s; animation-direction: reverse; border-style: dashed; }
+.r3 { width: 160px; height: 160px; opacity: 0.4; animation-duration: 7s; }
+@keyframes spin { from{transform:rotate(0deg);}to{transform:rotate(360deg);} }
+#core { width: 100px; height: 100px; border-radius: 50%; background: radial-gradient(circle,#001830 0%,#000810 100%); border: 2px solid var(--cyan); box-shadow: 0 0 40px #00f0ff55, inset 0 0 20px #00f0ff22; display: flex; align-items: center; justify-content: center; animation: pulse 2s ease-in-out infinite; z-index: 6; }
+#core-inner { text-align: center; }
+#eye-svg { width: 60px; height: 30px; display: block; margin: 0 auto; }
+#core-label { font-size: 0.7rem; letter-spacing: 3px; font-weight: 700; margin-top: 2px; }
+@keyframes pulse { 0%,100%{box-shadow:0 0 40px #00f0ff55,inset 0 0 20px #00f0ff22;}50%{box-shadow:0 0 80px #00f0ffaa,inset 0 0 40px #00f0ff44;} }
+#panels { position: fixed; bottom: 80px; left: 0; right: 0; z-index: 10; display: flex; justify-content: center; gap: 16px; padding: 0 20px; }
+.panel { background: var(--panel); border: 1px solid #00f0ff33; border-radius: 8px; padding: 14px 18px; min-width: 140px; flex: 1; max-width: 200px; backdrop-filter: blur(10px); transition: border-color 0.3s; }
+.panel:hover { border-color: var(--cyan); box-shadow: var(--glow); }
+.panel-icon { font-size: 1.4rem; margin-bottom: 6px; }
+.panel-title { font-size: 0.6rem; letter-spacing: 2px; font-weight: 700; margin-bottom: 4px; }
+.panel-desc { font-size: 0.5rem; color: #00f0ff88; letter-spacing: 1px; line-height: 1.4; margin-bottom: 8px; }
+.bar { background: #00f0ff22; border-radius: 4px; height: 3px; overflow: hidden; }
+.bar-fill { height: 100%; background: linear-gradient(90deg,var(--blue),var(--cyan)); border-radius: 4px; animation: barPulse 3s ease-in-out infinite; }
+@keyframes barPulse { 0%,100%{opacity:1;}50%{opacity:0.5;} }
+#ticker-wrap { position: fixed; bottom: 40px; left: 0; right: 0; z-index: 10; overflow: hidden; border-top: 1px solid #00f0ff22; border-bottom: 1px solid #00f0ff22; background: rgba(0,8,16,0.7); padding: 6px 0; }
+#ticker { display: inline-flex; gap: 32px; white-space: nowrap; font-size: 0.6rem; letter-spacing: 3px; color: var(--cyan); animation: ticker 30s linear infinite; }
+#ticker span { flex-shrink: 0; }
+@keyframes ticker { from{transform:translateX(0);}to{transform:translateX(-50%);} }
+#footer { position: fixed; bottom: 0; left: 0; right: 0; z-index: 10; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 8px; font-size: 0.5rem; letter-spacing: 2px; color: #00f0ff66; background: rgba(0,8,16,0.9); }
+#status-dot { width: 6px; height: 6px; border-radius: 50%; background: #00ff88; box-shadow: 0 0 8px #00ff88; animation: blink 1.5s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:1;}50%{opacity:0.3;} }
+#status-text { color: #00ff88; }
+</style>
+</head>
+<body>
+<canvas id="engineCanvas"></canvas>
+
+<div id="hud">
+  <div id="logo">
+    <span class="hi">KNOCKSSTUDiOS</span>
+    <span class="sub">9DK 360 HYPER-ENGINE</span>
+  </div>
+  <div id="engine-badge">
+    <span class="badge-label">POWERED BY</span>
+    <span class="badge-name">9DK 360 HYPER-ENGINE</span>
+    <span class="badge-nodes"><span id="nodeCount">0</span> / 10,000 NODES ACTIVE</span>
+  </div>
+</div>
+
+<div id="center">
+  <div id="ring-wrap">
+    <div class="ring r1"></div>
+    <div class="ring r2"></div>
+    <div class="ring r3"></div>
+    <div id="core">
+      <div id="core-inner">
+        <svg viewBox="0 0 100 100" id="eye-svg">
+          <ellipse cx="50" cy="50" rx="40" ry="20" fill="none" stroke="#00f0ff" stroke-width="2"/>
+          <circle cx="50" cy="50" r="12" fill="#00f0ff" opacity="0.9"/>
+          <circle cx="50" cy="50" r="6" fill="#fff"/>
+        </svg>
+        <div id="core-label">9DK</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="panels">
+  <div class="panel">
+    <div class="panel-icon">📸</div>
+    <div class="panel-title">360° CAPTURE</div>
+    <div class="panel-desc">Full-sphere imaging at 200MP resolution</div>
+    <div class="bar"><div class="bar-fill" style="width:92%"></div></div>
+  </div>
+  <div class="panel">
+    <div class="panel-icon">⚡</div>
+    <div class="panel-title">HYPER PROCESS</div>
+    <div class="panel-desc">Real-time 9DK node rendering pipeline</div>
+    <div class="bar"><div class="bar-fill" style="width:87%"></div></div>
+  </div>
+  <div class="panel">
+    <div class="panel-icon">🎬</div>
+    <div class="panel-title">STUDIO OUTPUT</div>
+    <div class="panel-desc">Cinema-grade delivery in seconds</div>
+    <div class="bar"><div class="bar-fill" style="width:95%"></div></div>
+  </div>
+</div>
+
+<div id="ticker-wrap">
+  <div id="ticker">
+    <span>9DK 360 HYPER-ENGINE ONLINE</span><span>·</span>
+    <span>10,000 NODES ACTIVE</span><span>·</span>
+    <span>KNOCKSSTUDiOS</span><span>·</span>
+    <span>hollywoodimaging.studio</span><span>·</span>
+    <span>360° CAPTURE READY</span><span>·</span>
+    <span>CINEMA-GRADE OUTPUT</span><span>·</span>
+    <span>9DK 360 HYPER-ENGINE ONLINE</span><span>·</span>
+    <span>10,000 NODES ACTIVE</span><span>·</span>
+    <span>KNOCKSSTUDiOS</span><span>·</span>
+  </div>
+</div>
+
+<div id="footer">
+  <span>© 2026 KNOCKSSTUDiOS</span>
+  <span id="status-dot"></span>
+  <span id="status-text">ALL SYSTEMS OPERATIONAL</span>
+</div>
+
+<script>
+const canvas=document.getElementById('engineCanvas');
+const ctx=canvas.getContext('2d');
+const nodeCountEl=document.getElementById('nodeCount');
+let W,H,nodes=[],mouse={x:0,y:0};
+const VN=300,TN=10000,CD=120;
+const COLORS=['#00f0ff','#0050ff','#00aaff','#ffffff'];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+class Node{
+  constructor(){this.reset();}
+  reset(){
+    this.x=Math.random()*W;this.y=Math.random()*H;
+    this.vx=(Math.random()-0.5)*0.6;this.vy=(Math.random()-0.5)*0.6;
+    this.r=Math.random()*1.8+0.3;
+    this.color=COLORS[Math.floor(Math.random()*COLORS.length)];
+    this.alpha=Math.random()*0.7+0.2;
+    this.pulse=Math.random()*Math.PI*2;
+    this.pulseSpeed=Math.random()*0.02+0.005;
+    this.active=Math.random()>0.3;
+  }
+  update(){
+    this.x+=this.vx;this.y+=this.vy;
+    this.pulse+=this.pulseSpeed;
+    this.alpha=0.2+Math.abs(Math.sin(this.pulse))*0.7;
+    const dx=this.x-mouse.x,dy=this.y-mouse.y,d=Math.sqrt(dx*dx+dy*dy);
+    if(d<100){this.vx+=(dx/d)*0.3;this.vy+=(dy/d)*0.3;}
+    const sp=Math.sqrt(this.vx*this.vx+this.vy*this.vy);
+    if(sp>2){this.vx*=0.95;this.vy*=0.95;}
+    if(this.x<-10)this.x=W+10;if(this.x>W+10)this.x=-10;
+    if(this.y<-10)this.y=H+10;if(this.y>H+10)this.y=-10;
+  }
+  draw(){
+    ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);
+    ctx.fillStyle=this.color;ctx.globalAlpha=this.alpha;ctx.fill();
+    if(this.active&&this.r>1.2){
+      ctx.beginPath();ctx.arc(this.x,this.y,this.r*3,0,Math.PI*2);
+      const g=ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,this.r*3);
+      g.addColorStop(0,this.color+'44');g.addColorStop(1,'transparent');
+      ctx.fillStyle=g;ctx.fill();
+    }
+    ctx.globalAlpha=1;
+  }
+}
+function drawGrid(){
+  ctx.globalAlpha=0.04;ctx.strokeStyle='#00f0ff';ctx.lineWidth=0.5;
+  for(let x=0;x<W;x+=60){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=60){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  ctx.globalAlpha=1;
+}
+function drawConnections(){
+  for(let i=0;i<VN;i++){
+    for(let j=i+1;j<VN;j++){
+      const a=nodes[i],b=nodes[j];
+      const dx=a.x-b.x,dy=a.y-b.y,d=Math.sqrt(dx*dx+dy*dy);
+      if(d<CD){
+        ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
+        ctx.strokeStyle='#00f0ff';ctx.globalAlpha=(1-d/CD)*0.15;
+        ctx.lineWidth=0.5;ctx.stroke();
+      }
+    }
+  }
+  ctx.globalAlpha=1;
+}
+let dn=0,sw=0,fr=0;
+function animate(){
+  requestAnimationFrame(animate);fr++;
+  ctx.fillStyle='rgba(0,8,16,0.18)';ctx.fillRect(0,0,W,H);
+  drawGrid();
+  sw+=0.008;
+  ctx.save();ctx.beginPath();ctx.moveTo(W/2,H/2);
+  ctx.arc(W/2,H/2,Math.max(W,H),sw-0.4,sw);ctx.closePath();
+  const sg=ctx.createLinearGradient(W/2,H/2,W/2+Math.cos(sw)*W,H/2+Math.sin(sw)*H);
+  sg.addColorStop(0,'transparent');sg.addColorStop(1,'#00f0ff08');
+  ctx.fillStyle=sg;ctx.fill();ctx.restore();
+  for(let i=0;i<VN;i++){nodes[i].update();nodes[i].draw();}
+  drawConnections();
+  ctx.globalAlpha=0.03;
+  for(let y=0;y<H;y+=4){ctx.fillStyle='#000';ctx.fillRect(0,y,W,2);}
+  ctx.globalAlpha=1;
+  if(fr%10===0&&dn<TN){dn=Math.min(dn+137,TN);nodeCountEl.textContent=dn.toLocaleString();}
+}
+function init(){resize();nodes=[];for(let i=0;i<VN;i++)nodes.push(new Node());animate();}
+window.addEventListener('resize',resize);
+window.addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;});
+window.addEventListener('touchmove',e=>{mouse.x=e.touches[0].clientX;mouse.y=e.touches[0].clientY;});
+init();
+</script>
+</body>
+</html>
